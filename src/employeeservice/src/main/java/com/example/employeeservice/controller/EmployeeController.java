@@ -1,10 +1,14 @@
 package com.example.employeeservice.controller;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.function.Supplier;
 
 import com.example.employeeservice.model.Employee;
 import com.example.employeeservice.repository.EmployeeRepository;
 import io.micrometer.core.annotation.Timed;
+import io.micrometer.core.instrument.Gauge;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,18 +23,41 @@ public class EmployeeController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EmployeeController.class);
 
+    private MeterRegistry _registry;
+    private HashMap<String, Integer> _employee_search_count_map;
     @Autowired
     EmployeeRepository repository;
+
+    public Supplier<Number> fetchUserCount(String id) {
+        return ()->_employee_search_count_map.get(id);
+    }
+
+    EmployeeController(MeterRegistry registry)
+    {
+        _registry = registry;
+        _employee_search_count_map = new HashMap<>();
+    }
 
     @PostMapping("/")
     public Employee add(@RequestBody Employee employee) {
         LOGGER.info("Employee add: {}", employee);
+
         return repository.save(employee);
     }
 
     @GetMapping("/{id}")
     public Employee findById(@PathVariable("id") String id) {
         LOGGER.info("Employee find: id={}", id);
+        if(_employee_search_count_map.containsKey(id))
+        {
+            Integer employeeSearchCount = _employee_search_count_map.get(id);
+            _employee_search_count_map.put(id, employeeSearchCount + 1);
+        }
+
+        Gauge.builder("employeecontoller.employeesearchcount",fetchUserCount(id)).
+                tag("version","v1").
+                description("employeecontroller descrip").
+                register(_registry);
         return repository.findById(id).get();
     }
 
