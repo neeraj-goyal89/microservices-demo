@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.example.employeeservice.model.Employee;
 import com.example.employeeservice.repository.EmployeeRepository;
+import io.micrometer.core.annotation.Timed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +34,7 @@ public class EmployeeController {
         return repository.findById(id).get();
     }
 
+    @Timed(value="employee.get.value",description="time to retrieve all employees",percentiles={0.75,0.9,0.95})
     @GetMapping("/")
     public Iterable<Employee> findAll() {
         LOGGER.info("Employee find");
