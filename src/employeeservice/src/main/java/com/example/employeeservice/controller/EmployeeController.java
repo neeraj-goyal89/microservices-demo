@@ -23,8 +23,8 @@ public class EmployeeController {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(EmployeeController.class);
 
-    private MeterRegistry _registry;
-    private HashMap<String, Integer> _employee_search_count_map;
+    private static MeterRegistry _registry;
+    private static HashMap<String, Integer> _employee_search_count_map;
     @Autowired
     EmployeeRepository repository;
 
